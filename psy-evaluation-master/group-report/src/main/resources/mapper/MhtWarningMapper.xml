@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.MhtWarningMapper">
+    <select id="getTaskSchoolInfo" resultType="map">
+        SELECT s.`name`,t.valid_numbers validNum,t.warning_numbers checkOuNum,t.numbers,CONCAT(CAST(ROUND((t.warning_numbers/t.numbers)*100) AS CHAR),'%') AS p
+        from task_school t LEFT JOIN schools s on t.school_id=s.id
+        where t.task_id = #{taskId}
+        <if test="county!=null">
+            and t.county = #{county}
+        </if>
+        and t.school_id in
+        <foreach collection="schoolIds" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+;
+    </select>
+
+    <select id="getStudentGradeWarningInfo" resultType="map">
+        SELECT CONCAT(s.period,s.grade) grade,COUNT(*) num from students s
+        where s.id_number in (
+            select u.username from users u LEFT JOIN task_user t on u.id=t.user_id
+            where /*SUBSTRING_INDEX(SUBSTRING_INDEX(t.result, ':', -1),',', 1) >= 65*/
+                t.warning = 1
+              and t.valid = 1
+              and t.school_id in
+                <foreach collection="schoolIds" item="item" index="index" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+                <if test="periodList!=null">
+                    and s.period in
+                    <foreach collection="periodList" item="item" index="index" open="(" close=")" separator=",">
+                        #{item}
+                    </foreach>
+                </if>
+                <if test="greadeIn!=null">
+                    and CONCAT(s.period,s.grade) in
+                    <foreach collection="greadeIn" item="item" index="index" open="(" close=")" separator=",">
+                        #{item}
+                    </foreach>
+                </if>
+                <if test="classIn!=null">
+                    and CONCAT(s.period,s.grade,s.classes) in
+                    <foreach collection="classIn" item="item" index="index" open="(" close=")" separator=",">
+                        #{item}
+                    </foreach>
+                </if>
+
+              and t.task_id = #{taskId} and t.school_year = s.school_year ) and s.deleted = 0 GROUP BY s.period,s.grade ;
+    </select>
+
+    <select id="getStudentGradeInfo" resultType="map">
+        SELECT t.warning,t.result,s.sex,s.period,s.grade, t.valid from task_user t
+        LEFT JOIN users u on t.user_id=u.id
+        LEFT JOIN students s on u.username = s.id_number and s.school_year = t.school_year
+        where s.deleted = 0 and t.task_id = #{taskId}
+        <if test="periodList!=null">
+            and s.period in
+            <foreach collection="periodList" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="greadeIn!=null">
+            and CONCAT(s.period,s.grade) in
+            <foreach collection="greadeIn" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="classIn!=null">
+            and CONCAT(s.period,s.grade,s.classes) in
+            <foreach collection="classIn" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="county!=null">
+            and t.school_id in (select id from schools where county=#{county})
+        </if>
+        <if test="schoolIds!=null">
+            and t.school_id in
+            <foreach collection="schoolIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        order by s.period,s.grade desc;
+    </select>
+
+    <select id="getTaskByCounty" resultType="map">
+        SELECT t.id,t.name from task t LEFT JOIN task_school ts on t.id = ts.task_id where ts.county=#{county} and t.deleted=0 GROUP BY t.id;
+    </select>
+</mapper>

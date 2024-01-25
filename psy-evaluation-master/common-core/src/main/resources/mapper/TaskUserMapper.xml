@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.TaskUserMapper">
+    <select id="getStudentInfoById" resultType="map">
+        select student_id, period, grade, classes, name, sex
+        from students
+        where deleted = 0 and school_year = #{schoolYear} and username = (select username from users where id = #{id})
+        order by id desc
+        limit 1
+    </select>
+
+    <select id="getTaskWarnCount" resultType="int">
+        SELECT
+            count( 1 )
+        FROM
+            (
+                SELECT
+                    t1.warning
+                FROM
+                    task_user AS t1
+                        INNER JOIN (
+                        SELECT
+                            MAX( t2.id ) AS max_id
+                        FROM
+                            task_user AS t2
+                        WHERE
+                            t2.task_id = #{task_id}
+                        GROUP BY
+                            t2.user_id
+                    ) AS t3 ON t1.id = t3.max_id
+            ) AS t4
+        WHERE
+            t4.warning = 1;
+    </select>
+    <select id="getStudentInfoForTask" resultType="map">
+        select * from
+        (select schools.id as school_id, schools.charge_person, schools.phone from schools where deleted = 0) school
+        INNER JOIN
+        (select students.school_id, students.period, students.grade, students.classes, students.name, students.student_id, students.username from students
+        where students.period = #{period} and students.grade = #{grade} and students.classes = #{classes} and students.school_id = #{schoolId} and deleted = 0) student
+        on school.school_id = student.school_id
+        INNER JOIN
+        (select users.id as user_id, users.username from users where deleted = 0) userinfo
+        on student.username = userinfo.username
+    </select>
+
+    <select id="getLatestSubmit" resultType="org.ww.domain.TaskUser">
+        select * from task_user where user_id = #{id} and task_id = #{task_id} order by submit_time desc LIMIT 1
+    </select>
+
+    <select id="getUserIdList" resultType="int">
+        select user_id from task_user where task_id = #{taskId} and school_id = #{schoolId} group by user_id
+    </select>
+
+    <update id="resetTask">
+        update task_user set to_retest = 1 where id = #{taskUserId}
+    </update>
+</mapper>

@@ -1,0 +1,60 @@
+@import "@/styles/variables.scss";
+
+.el-popover {
+  min-width: 0px !important;
+}
+
+.el-form-item__error {
+  position:  relative !important;
+}
+
+.el-table--border {
+  border: 1px #dddddd solid !important;
+}
+
+.el-table .cell {
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+}
+
+.el-table .el-table__cell {
+  padding: 10px 0 !important;
+}
+
+ul {
+  padding: 0;
+  margin: 0;
+}
+
+ul li {
+  list-style: none;
+  padding: 5px 0 5px 0;
+  cursor: pointer;
+}
+
+.el-dialog {
+  margin-top: 10vh !important;
+  .el-dialog__body {
+    height: 70vh;
+    overflow: auto;
+  }
+  
+  .el-dialog__header {
+    background-color: $themeColor;
+    height: 60px;
+    padding: 0 20px !important;
+    .el-dialog__title {
+      color: white;
+      line-height: 60px;
+      font-size: 20px;
+    }
+    .el-dialog__headerbtn {
+      .el-dialog__close {
+        color: white;
+        &:hover {
+          color: #EFE5FF;
+        }
+      }
+    }
+  }
+}

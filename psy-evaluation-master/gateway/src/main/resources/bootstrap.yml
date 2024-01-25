@@ -1,0 +1,53 @@
+spring:
+  profiles:
+    active: test
+---
+
+spring:
+  profiles: test
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: dea35e6d-dc60-4ec2-91e3-b4d10be07c05
+        username: nacos
+        password: nacos
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: dea35e6d-dc60-4ec2-91e3-b4d10be07c05
+        group: DEFAULT_GROUP  # 默认分组就是DEFAULT_GROUP，如果使用默认分组可以不配置
+        file-extension: yml   #默认properties
+
+---
+
+spring:
+  profiles: pre
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: 7c4d2f6e-4466-43d7-842f-ec803b849e6e
+        username: nacos
+        password: nacos
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: 7c4d2f6e-4466-43d7-842f-ec803b849e6e
+        group: DEFAULT_GROUP  # 默认分组就是DEFAULT_GROUP，如果使用默认分组可以不配置
+        file-extension: yml   #默认properties
+
+---
+
+spring:
+  profiles: prd
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: b892c3fe-edb2-4533-9761-bed10603d555
+        username: nacos
+        password: nacos
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: b892c3fe-edb2-4533-9761-bed10603d555
+        group: DEFAULT_GROUP  # 默认分组就是DEFAULT_GROUP，如果使用默认分组可以不配置
+        file-extension: yml   #默认properties

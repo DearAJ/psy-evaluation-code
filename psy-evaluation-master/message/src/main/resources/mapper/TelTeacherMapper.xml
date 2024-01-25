@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.ww.mapper.TelTeacherMapper">
+
+<!--    <select id="selectCertificatesByTeacher" resultType="org.ww.domain.TelCommonCode">-->
+<!--        SELECT      cc.*-->
+<!--        FROM        tel_teacher_certificate tc-->
+<!--        LEFT JOIN   tel_common_code cc on tc.certificate_id = cc.id-->
+<!--        WHERE       tc.tel_teacher_id = #{teacherId}-->
+<!--        ORDER BY    tc.priority DESC-->
+<!--    </select>-->
+
+</mapper>

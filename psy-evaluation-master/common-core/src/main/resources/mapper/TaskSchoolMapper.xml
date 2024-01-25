@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.TaskSchoolMapper">
+    <update id="updateComNumbers">
+        UPDATE task_school SET complete_numbers = complete_numbers + 1 WHERE task_id = #{taskId} AND school_id = #{schoolId}
+    </update>
+    <update id="updateWarningNumbers">
+        UPDATE task_school SET warning_numbers = warning_numbers + 1 WHERE task_id = #{taskId} AND school_id = #{schoolId}
+    </update>
+    <update id="updateValidNumbers">
+        UPDATE task_school SET valid_numbers = valid_numbers + 1 WHERE task_id = #{taskId} AND school_id = #{schoolId}
+    </update>
+
+    <select id="getLatestCityTask" resultType="map">
+        SELECT
+            t1.task_id,
+            t1.county,
+            t1.numbers,
+            t1.complete_numbers,
+            t1.is_submit,
+            t1.submit_time,
+            t1.warning_numbers,
+            t1.school_id
+        FROM
+            (
+                SELECT
+                    task_id,
+                    county,
+                    numbers,
+                    complete_numbers,
+                    is_submit,
+                    submit_time,
+                    warning_numbers,
+                    school_id
+                FROM
+                    task_school
+                WHERE
+                        task_id = ( SELECT task_id FROM task_school WHERE province = #{province} AND city = #{city} ORDER BY id DESC LIMIT 1 )
+            ) AS t1
+	INNER JOIN schools ON t1.school_id = schools.id
+        WHERE
+            schools.deleted = 0
+        ORDER BY
+            submit_time DESC;
+    </select>
+
+    <update id="updateNumbersById">
+        update task_school set numbers = numbers + 1 where id = #{id} and is_submit = 0
+    </update>
+
+    <update id="reduceNumbersById">
+        update task_school set numbers = numbers - 1 where id = #{id} and is_submit = 0
+    </update>
+
+    <update id="reduceComNumbersById">
+        update task_school set complete_numbers = complete_numbers - #{count} where task_id = #{taskId} and school_id = #{schoolId} and is_submit = 0
+    </update>
+
+    <update id="reduceWarnNumbersById">
+        update task_school set warning_numbers = warning_numbers - #{count} where task_id = #{taskId} and school_id = #{schoolId} and is_submit = 0
+    </update>
+
+    <select id="getTaskProcessInfo" resultType="map">
+        SELECT
+            t1.school_id,
+            t1.numbers,
+            t1.complete_numbers,
+            t1.warning_numbers,
+            t2.name,
+            t2.charge_person,
+            t2.phone,
+            t2.county,
+            t2.city
+        FROM
+            ( SELECT * FROM task_school WHERE task_id = #{taskId}
+            <if test="province != null and province != '' ">
+                AND province = #{province}
+            </if>
+            <if test="city != null and city != '' ">
+                AND city = #{city}
+            </if>
+            <if test="county != null and county != '' ">
+                AND county = #{county}
+            </if>
+            <if test="schoolId != null">
+                AND school_id = #{schoolId}
+            </if>
+        ) AS t1
+        INNER JOIN
+            ( SELECT * FROM schools WHERE deleted = 0
+                <if test="school != null and school != '' ">
+                    AND name = #{school}
+                </if>
+            ) AS t2 ON t1.school_id = t2.id
+    </select>
+
+    <select id="selectByTaskIdAndSchoolId" resultType="map">
+        select grade, classes, task_school.school_year from task_school
+        inner join task
+        on task_school.task_id = task.id
+        where task_school.task_id = #{taskId}
+        and task_school.school_id = #{schoolId}
+        and task.deleted = 0
+        limit 1
+    </select>
+</mapper>

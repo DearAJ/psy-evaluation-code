@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.TaskMapper">
+    <select id="getTaskInfoByIds" resultType="map">
+        select id, name, scale_id, start_date, end_date from task where deleted = 0 AND id in
+        <foreach collection="task_ids" item="task_id" index="index" open="(" close=")" separator=",">
+            #{task_id}
+        </foreach>
+    </select>
+
+    <select id="getTaskStateInfoById" resultType="org.ww.domain.Task">
+        SELECT
+        task.id,
+        task.name,
+        task.scale_id,
+        task.start_date,
+        task.end_date,
+        task.issued_unit,
+        <!--            t1.state,-->
+        CASE
+        WHEN now() &gt; task.end_date THEN 2
+        WHEN now() &lt; task.start_date THEN 0
+        ELSE 1
+        END as state
+        FROM
+        task
+        WHERE
+        task.deleted = 0
+        AND task.id = #{taskId}
+    </select>
+
+    <select id="getTaskAndIssueInfoById" resultType="map">
+        SELECT
+            t1.id,
+            t1.name,
+            t1.scale_id,
+            t1.start_date,
+            t1.end_date,
+            t1.issued_unit,
+<!--            t1.state,-->
+            CASE
+            WHEN now() &gt; t1.end_date THEN 2
+            WHEN now() &lt; t1.start_date THEN 0
+            ELSE 1
+            END as state,
+            manager.NAME AS issued_name,
+            manager.province,
+            manager.city,
+            manager.county,
+            manager.school
+        FROM
+            manager,
+            (
+                SELECT
+                    task.id,
+                    task.name,
+                    task.scale_id,
+                    task.start_date,
+                    task.end_date,
+                    task.issued_unit,
+                    CASE
+                    WHEN now() &gt; task.end_date THEN 2
+                    WHEN now() &lt; task.start_date THEN 0
+                    ELSE 1
+                    END as state,
+                    users.username
+                FROM
+                    task
+                        INNER JOIN (SELECT * from users where users.deleted = 0) AS users ON task.issued_id = users.id
+                WHERE
+                    task.deleted = 0
+                  AND task.id = #{task_id}
+            ) AS t1
+        WHERE
+            manager.username = t1.username
+            and manager.deleted = 0
+            order by manager.id desc
+            limit 1
+    </select>
+
+    <select id="getTaskStudentClassInfo" resultType="map">
+        SELECT
+            t4.entrance_year,
+            t4.period,
+            t4.grade,
+            t4.classes,
+            t3.user_id,
+            t3.valid,
+            t3.warning
+        FROM
+            (
+                SELECT
+                    username,
+                    user_id,
+                    valid,
+                    warning
+                FROM
+                    (
+                        SELECT
+                            user_id,
+                            valid,
+                            warning
+                        FROM
+                            task_user
+                        WHERE
+                                id IN (
+                                SELECT
+                                    SUBSTRING_INDEX( GROUP_CONCAT( id ORDER BY id DESC ), ',', 1 )
+                                FROM
+                                    task_user
+                                WHERE
+                                    school_id = #{schoolId}
+                                  AND task_id = #{taskId}
+                                GROUP BY
+                                    user_id
+                            )
+                    ) AS t1
+                        INNER JOIN ( SELECT id, username FROM users WHERE deleted = 0 ) AS t2 ON t1.user_id = t2.id
+            ) AS t3
+                INNER JOIN students AS t4 ON t3.username = t4.username
+    </select>
+
+    <update id="updateNumbersById">
+        update task set numbers = numbers + 1 where id = #{id} and deleted = 0 and state &lt; 2
+    </update>
+
+    <update id="reduceNumbersById">
+        update task set numbers = numbers - #{count} where id = #{id} and deleted = 0 and state &lt; 2
+    </update>
+
+    <update id="reduceComNumbersById">
+        update task set complete_numbers = complete_numbers - #{count} where id = #{id} and deleted = 0 and state &lt; 2
+    </update>
+
+    <update id="reduceWarnNumbersById">
+        update task set warning_numbers = warning_numbers - #{count} where id = #{id} and deleted = 0 and state &lt; 2
+    </update>
+
+    <update id="updateTaskState">
+        update task set state = #{state} where id = #{id}
+    </update>
+</mapper>

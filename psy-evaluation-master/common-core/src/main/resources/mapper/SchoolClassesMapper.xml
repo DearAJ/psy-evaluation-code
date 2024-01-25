@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.SchoolClassesMapper">
+
+    <select id="getClassNumbers" resultType="int">
+        SELECT class_numbers FROM school_classes WHERE deleted = 0 AND school_id = #{school_id} AND entrance_year = #{entrance_year}
+          AND period = #{period} AND  grade = #{grade} AND classes = #{classes}
+          and school_year = #{schoolYear}
+    </select>
+
+    <update id="plusSchoolClassNumbers">
+        UPDATE school_classes SET class_numbers = class_numbers + 1
+        WHERE deleted = 0 AND school_id = #{school_id} AND entrance_year = #{entrance_year}
+        AND period = #{period} AND  grade = #{grade} AND classes = #{classes}
+        AND school_year = #{schoolYear}
+    </update>
+
+    <update id="reduceSchoolClassNumbers">
+        UPDATE school_classes SET class_numbers = class_numbers - 1
+        WHERE deleted = 0 AND school_id = #{school_id} AND entrance_year = #{entrance_year}
+        AND period = #{period} AND  grade = #{grade} AND classes = #{classes}
+        AND school_year = #{schoolYear}
+    </update>
+
+    <update id="deleteClassesById">
+        UPDATE school_classes SET deleted = 1 WHERE school_id = #{school_id}
+    </update>
+
+    <delete id="deleteClasses">
+        delete from school_classes where class_numbers = 0
+    </delete>
+
+    <select id="getClassesByPG" resultType="org.ww.domain.SchoolClasses">
+        select classes, class_numbers from school_classes
+        where school_id = #{school_id}
+          and school_year = #{schoolYear}
+          and (period, grade) in (
+            <foreach collection="list" item="item" separator=",">
+                (#{item.period}, #{item.grade})
+            </foreach>
+            )
+    </select>
+
+    <select id="getClassesByPGC" resultType="org.ww.domain.SchoolClasses">
+        select classes, class_numbers from school_classes
+        where school_id = #{school_id}
+          and school_year = #{schoolYear}
+          and (period, grade, classes) in (
+        <foreach collection="list" item="item" separator=",">
+            (#{item.period}, #{item.grade}, #{item.class})
+        </foreach>
+        )
+    </select>
+
+</mapper>

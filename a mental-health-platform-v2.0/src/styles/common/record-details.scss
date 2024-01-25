@@ -1,0 +1,44 @@
+@import "@/styles/variables.scss";
+.detail {
+
+  ::v-deep .el-dialog__header {
+    background-color: white;
+    height: 70px;
+    text-align: center;
+  }
+
+  ::v-deep .el-dialog__title {
+    color: black;
+    line-height: 90px;
+    font-size: 22px;
+    font-family: Microsoft YaHei;
+    font-weight: 400;
+  }
+
+  ::v-deep .el-dialog__close {
+    color: black !important;
+  }
+
+  .form-block {
+    padding: 0 30px;
+
+    .form-flex {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+
+      ::v-deep .el-form-item {
+        width: 33%;
+        flex: 0 1 auto;
+      }
+      
+      .inline-2 {
+        width: 50%;
+      }
+    }
+
+    ::v-deep .el-form-item__label {
+      color: black;
+    }
+  }
+}

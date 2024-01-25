@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.ScaleMapper">
+    <select id="getScale" resultType="Map">
+        SELECT id, main, type, required, min, max, gear FROM questions WHERE deleted = 0 AND scale_id = #{id}
+    </select>
+    <select id="getOptions" resultType="Map">
+        SELECT id, main FROM options WHERE question_id = #{id} AND deleted = 0
+    </select>
+
+    <select id="getAllTaskResultsByTaskIds" resultType="Map">
+        SELECT students.name, students.sex, students.period,students.grade,students.classes,
+        task_user.task_id,
+        task_user.record,
+        task_user.result FROM task_user
+        left join task_user a
+        on task_user.user_id = a.user_id
+        and task_user.school_id = a.school_id
+        and task_user.task_id = a.task_id
+        and task_user.submit_time &lt; a.submit_time
+                                    inner join users
+                                    on task_user.user_id = users.id
+                                    inner join students
+                                    on users.username = students.id_number and students.school_year = task_user.school_year
+        inner join task
+        on task_user.task_id = task.id
+        and task.deleted = 0
+                                    where
+<!--        task_user.valid = 1 and task_user.to_retest=0-->
+        students.deleted = 0
+        <if test="periods!=null">
+            and students.period in
+            <foreach item="item" index="index" collection="periods"
+                     open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="grades!=null">
+            and students.grade in
+            <foreach item="item" index="index" collection="grades"
+                     open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="classes!=null">
+            and students.classes in
+            <foreach item="item" index="index" collection="classes"
+                     open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        and users.deleted = 0
+        and task_user.record is not null
+        and a.submit_time is NULL
+        and task_user.task_id in
+        <foreach item="item" index="index" collection="taskIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and task_user.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getAllTaskProgressBySchoolAndTaskIds" resultType="Map">
+        select period, grade, classes, classNum,
+        comNum,
+        validNum,
+        warnNum,
+        if(classNum = 0, 0, comNum/classNum) as process,
+        if(comNum = 0, 0, validNum/comNum) as validPercent,
+        if(validNum = 0, 0, warnNum/validNum) as warnPercent from (
+        SELECT s.period, s.grade, s.classes, count(distinct s.id) as classNum,
+        sum(if(tu.valid is not null, 1, 0)) as comNum,
+        sum(if(tu.valid = 1, 1, 0)) as validNum,
+        sum(if(fr.crisis_level != '无危机', 1, 0)) as warnNum
+        FROM students s
+        inner join users u
+        on s.username = u.username
+        left join (
+        select tu1.* from task_user tu1
+        left join task_user tu2
+        on tu1.user_id = tu2.user_id
+        and tu1.task_id = tu2.task_id
+        and tu1.submit_time &lt; tu2.submit_time
+        inner join task
+        on tu1.task_id = task.id
+        and task.deleted = 0
+
+        where tu1.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and tu2.id is null) tu
+        on tu.user_id = u.id
+        and tu.task_id in
+        <foreach item="item" index="index" collection="taskIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        left join
+        (select f1.*, r.crisis_level from students ss
+        inner join
+        psyintervationfiles f1
+        on ss.student_id = f1.student_id
+        left join psyintervationfiles f2
+        on f1.user_id = f2.user_id
+        and f1.task_id = f2.task_id
+        and f1.create_time &lt; f2.create_time
+                             inner join psyintervationrecord r
+                             on r.file_id = f1.id
+                             where f2.id is null and ss.school_id in
+            <foreach item="item" index="index" collection="schoolIds"
+                     open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        ) fr
+        on tu.user_id = fr.user_id
+        and tu.task_id = fr.task_id
+
+        where s.school_year = #{schoolYear} and
+        s.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and s.deleted = 0
+        and u.deleted = 0
+        group by s.period, s.grade, s.classes
+        ) tmp order by warnNum desc
+    </select>
+
+
+    <select id="personalReportList" resultType="map">
+
+        select t.name, t.sex, null as period,null as grade, null as classes, null as student_id, tu.task_name, null as student_code, t.id_number, t.phone, r.role,
+        tu.task_id, tu.scale_name, tu.scaleType, schools.name as school, schools.province, schools.city, schools.county, u.id as user_id, tu.submit_time
+        ,tu.school_year, 0 as archived
+        FROM
+        (
+        select tu1.*, scale.name as scale_name, scale.type as scaleType,
+        task.name as task_name from task_user tu1
+        left join task_user tu2
+        on tu1.user_id = tu2.user_id
+        and tu1.task_id = tu2.task_id
+        and tu1.submit_time &lt; tu2.submit_time
+                              inner join task
+                              on tu1.task_id = task.id
+                              and task.deleted = 0
+                              inner join scale
+                              on task.scale_id = scale.id
+        where tu1.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+                              and tu2.id is null) tu
+
+        inner join users u
+        on tu.user_id = u.id
+        inner join roles r
+        on u.username = r.username
+        inner join teachers t
+        on u.username = t.username
+        inner join schools
+        on t.school_id = schools.id
+
+        where tu.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and u.deleted = 0
+        and t.deleted = 0
+        and r.deleted = 0
+        <if test="role!=null and role!=''">
+            and r.role=#{role}
+        </if>
+        <if test="name!=null and name!=''">
+            and t.name=#{name}
+        </if>
+        <if test="sex!=null and sex!=''">
+            and t.sex=#{sex}
+        </if>
+        <if test="idNumber!=null and idNumber!=''">
+            and t.id_number=#{idNumber}
+        </if>
+        <if test="phoneNumber!=null and phoneNumber!=''">
+            and t.phone=#{phoneNumber}
+        </if>
+
+        union
+
+
+        select s.name, s.sex, s.period, s.grade, s.classes, s.student_id,tu.task_name as task_name, s.student_code, s.id_number, null as phone, r.role,
+        tu.task_id, tu.scale_name,tu.scaleType, schools.name as school, schools.province, schools.city, schools.county, u.id as user_id, tu.submit_time
+        ,tu.school_year, s.archived as archived
+        FROM
+        (
+        select tu1.*, scale.name as scale_name, scale.type as scaleType,
+        task.name as task_name from task_user tu1
+        left join task_user tu2
+        on tu1.user_id = tu2.user_id
+        and tu1.task_id = tu2.task_id
+        and tu1.submit_time &lt; tu2.submit_time
+                              inner join task
+                              on tu1.task_id = task.id
+                              and task.deleted = 0
+                              inner join scale
+                              on task.scale_id = scale.id
+            where tu1.school_id in
+            <foreach item="item" index="index" collection="schoolIds"
+                     open="(" separator="," close=")">
+                #{item}
+            </foreach>
+                              and tu2.id is null) tu
+
+        inner join users u
+        on tu.user_id = u.id
+        inner join roles r
+        on u.username = r.username
+        inner join students s
+        on u.username = s.username and tu.school_year = s.school_year
+        inner join schools
+        on s.school_id = schools.id
+
+        where tu.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and u.deleted = 0
+        and s.deleted = 0
+        and r.deleted = 0
+        <if test="role!=null and role!=''">
+            and r.role=#{role}
+        </if>
+        <if test="name!=null and name!=''">
+            and s.name=#{name}
+        </if>
+        <if test="period!=null and period!=''">
+            and s.period=#{period}
+        </if>
+        <if test="grade!=null and grade!=''">
+            and s.grade=#{grade}
+        </if>
+        <if test="classes!=null and classes!=''">
+            and s.classes=#{classes}
+        </if>
+        <if test="sex!=null and sex!=''">
+            and s.sex=#{sex}
+        </if>
+        <if test="idNumber!=null and idNumber!=''">
+            and s.id_number=#{idNumber}
+        </if>
+        <if test="studentId!=null and studentId!=''">
+            and s.student_id=#{studentId}
+        </if>
+        <if test="archived != null">
+            and s.archived=#{archived}
+        </if>
+
+    </select>
+
+    <select id="getExecutionTaskUserInfo" resultType="Map">
+        select tu.*, s.student_id,
+        s.sex, s.name,
+        s.archived,
+        s.classes, s.grade, s.period
+        from students s
+        inner join
+        users u
+        on s.username = u.username
+        inner join
+        (
+        select tu1.id, tu1.to_retest, tu1.user_id as userId,
+        tu1.valid, tu1.warning, tu1.school_year,
+        scale.name as scaleName, scale.type as scaleType,
+        task.semester as semester,
+        task.name as task_name from task_user tu1
+        left join task_user tu2
+        on tu1.user_id = tu2.user_id
+        and tu1.task_id = tu2.task_id
+        and tu1.submit_time &lt; tu2.submit_time
+        inner join task
+        on tu1.task_id = task.id
+        and task.deleted = 0
+        inner join scale
+        on task.scale_id = scale.id
+        where tu2.id is null
+        <if test="scaleName!=null and scaleName!=''">
+            and scale.name=#{scaleName}
+        </if>
+
+        <if test="semester!=null and semester!=''">
+            and task.semester=#{semester}
+        </if>
+        and task.id in
+        <foreach item="item" index="index" collection="taskIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and tu1.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach> ) tu
+        on u.id = tu.userId
+        where
+        u.deleted = 0
+        and s.deleted = 0
+        and s.school_year = tu.school_year
+        and s.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        <if test="name!=null and name!=''">
+            and s.name=#{name}
+        </if>
+
+        <if test="period!=null and !period.isEmpty()">
+            and s.period in
+            <foreach item="item" index="index" collection="period"
+                     open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="grade!=null and !grade.isEmpty()">
+            and s.grade in
+            <foreach item="item" index="index" collection="grade"
+                     open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="classes!=null and !classes.isEmpty()">
+            and s.classes in
+            <foreach item="item" index="index" collection="classes"
+                     open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="valid!=null">
+            and tu.valid=#{valid}
+        </if>
+        <if test="warning!=null">
+            and tu.warning=#{warning}
+        </if>
+        <if test="studentId!=null and studentId!=''">
+            and s.student_id=#{studentId}
+        </if>
+    </select>
+
+    <select id="getSchoolTaskCompletion" resultType="Map">
+        select tu.*,
+        if(tu.valid is null, '未完成', '已完成') as completion,
+        task.semester,
+        scale.name as scaleName, scale.type as scaleType,
+        task.name as task_name,
+        s.student_id,
+        s.school_id,
+        s.archived,
+        s.sex, s.name, s.username,
+        s.classes, s.grade, s.period,
+        sr.name as charge_person, sr.phone
+        from students s
+        inner join school_role sr
+        on s.school_id = sr.school_id
+        and sr.role = '学校管理员'
+        inner join
+        users u
+        on s.username = u.username
+        inner join task_school ts
+        on s.school_id = ts.school_id
+        inner join task
+        on ts.task_id = task.id
+        and task.deleted = 0
+        and task.id in
+        <foreach item="item" index="index" collection="taskIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        <if test="semester!=null and semester!=''">
+            and task.semester=#{semester}
+        </if>
+        inner join scale
+        on task.scale_id = scale.id
+        left join
+        (
+        select tu1.id, tu1.to_retest, tu1.user_id,
+        tu1.valid, tu1.warning from task_user tu1
+        left join task_user tu2
+        on tu1.user_id = tu2.user_id
+        and tu1.task_id = tu2.task_id
+        and tu1.submit_time &lt; tu2.submit_time
+        where tu2.id is null
+
+        and tu1.task_id in
+        <foreach item="item" index="index" collection="taskIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and tu1.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach> ) tu
+        on u.id = tu.user_id
+        where
+        u.deleted = 0
+        and s.deleted = 0
+        and s.school_year = #{schoolYear}
+        and s.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        <if test="name!=null and name!=''">
+            and s.name=#{name}
+        </if>
+
+        <if test="period!=null and !period.isEmpty()">
+            and s.period in
+            <foreach item="item" index="index" collection="period"
+                     open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="grade!=null and !grade.isEmpty()">
+            and s.grade in
+            <foreach item="item" index="index" collection="grade"
+                     open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="classes!=null and !classes.isEmpty()">
+            and s.classes in
+            <foreach item="item" index="index" collection="classes"
+                     open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="studentId!=null and studentId!=''">
+            and s.student_id=#{studentId}
+        </if>
+        <if test="completion == '未完成'">
+            and tu.valid is null
+        </if>
+        <if test="completion == '已完成'">
+            and tu.valid is not null
+        </if>
+    </select>
+</mapper>

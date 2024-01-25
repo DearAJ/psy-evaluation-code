@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.ProvicesMapper.PRIntervationStatisticMapper">
+    <select id="selectStatisticRes" parameterType="String" resultType="org.ww.EntityDO.ProvinceEntityDO.PRIntervationStatisticDO">
+        select  province,city,county,schools.id,schools.name as school_name, p.period,p.grade,p.classes,count(*) as "intervation_nums",
+        sum(if(p.crisis_level='一级预警（一般心理危机）', 1, 0)) as aLevel,
+        sum(if(p.crisis_level='二级预警（严重心理危机）', 1, 0)) as bLevel,
+        sum(if(p.crisis_level='三级预警（重大心理危机）', 1, 0)) as cLevel
+        from (
+        select students.school_id,students.id,name,crisis_level,grade,period,classes,psyintervationrecord.create_time from
+        (SELECT id, task_id, student_id, user_id,
+        GREATEST(COALESCE(psy_intervation_last_record_id, 0),COALESCE(psy_intervation_crisis_id, 0)) as record_id
+        FROM psyintervationfiles) files
+        inner join students on files.student_id=students.id
+        inner join psyintervationrecord on files.record_id=psyintervationrecord.id group by students.id
+        ) as p left join schools on schools.id=p.school_id
+        group by
+            city,
+            county,
+            p.school_id,
+            p.period,
+            p.grade,
+            p.classes
+        having
+        <if test="province!=null and province!=''">
+            province=#{province}
+        </if>
+        <if test="city!=null and city!=''">
+            and city=#{city}
+        </if>
+        <if test="county!=null and county!=''">
+            and county=#{county}
+        </if>
+        <if test="schoolName!=null and schoolName!=''">
+            and schools.name=#{schoolName}
+        </if>
+        <if test="schoolId!=null and schoolId!=''">
+            and schools.id=#{schoolId}
+        </if>
+        <if test="period!=null and period!=''">
+            and p.period=#{period}
+        </if>
+        <if test="classes != null and classes!=''">
+            and p.classes=#{classes}
+        </if>
+        <if test="grade!= null and grade!=''">
+            and p.grade=#{grade}
+        </if>
+        order by p.id
+    </select>
+
+    <select id="selectStatisticCount" parameterType="String" resultType="Long">
+        select  count(*) from (
+        select students.school_id,students.id,name,crisis_level,grade,period,classes,max(psyintervationfiles.create_time) from
+        psyintervationfiles inner join students on psyintervationfiles.student_id=students.id
+        inner join psyintervationrecord on psyintervationfiles.psy_intervation_record_id=psyintervationrecord.id group by students.id
+        ) as p left join schools on schools.id=p.school_id
+        group by city,county,schools.name,p.period,p.grade,p.classes,p.crisis_level
+        having
+        <if test="province!=null and province!=''">
+            province=#{province}
+        </if>
+        <if test="city!=null and city!=''">
+            and city=#{city}
+        </if>
+        <if test="county!=null and county!=''">
+            and county=#{county}
+        </if>
+        <if test="schoolName!=null and schoolId!=''">
+            and schools.name=#{schoolName}
+        </if>
+        <if test="period!=null and period!=''">
+            and p.period=#{period}
+        </if>
+        <if test="classes != null and classes!=''">
+            and p.classes=#{classes}
+        </if>
+        <if test="grade!= null and grade!=''">
+            and p.grade=#{grade}
+        </if>
+    </select>
+</mapper>

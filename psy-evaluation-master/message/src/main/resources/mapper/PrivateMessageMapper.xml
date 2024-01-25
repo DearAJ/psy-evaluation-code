@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.ww.mapper.PrivateMessageMapper">
+
+
+    <select id="selectUndeliveredMessageIds" resultType="long">
+        SELECT
+          pm.id
+        FROM
+          private_message pm
+        WHERE
+          (
+            (
+              pm.target = #{username}
+              AND (
+                pm.type = '1'
+                OR pm.type = '2'
+                OR pm.type = '3'
+              )
+            )
+            OR (
+              pm.ref_id2 = #{username}
+              AND (
+                pm.type = '2'
+                OR pm.type = '3'
+              )
+            )
+          )
+          AND pm.id &gt; #{currentId}
+          AND pm.deleted = 0
+    </select>
+
+    <select id="selectPsyintervationInfoByFileId" resultType="map">
+        SELECT
+          f.id as id,
+          s.school_id as school_id,
+          f.user_id as user_id
+        FROM
+          psyintervationfiles f,
+          students s
+        WHERE
+          f.id = #{fileId}
+          AND f.student_id = s.id
+    </select>
+
+    <select id="selectInMessages" resultType="org.ww.dto.PrivateMessageDto">
+            SELECT
+              pm.id,
+              pm.type,
+              pm.content,
+              pm.ref_id,
+              pm.create_time,
+              pmd.status,
+              pm.sender_username as senderUser,
+              pm.sender_title,
+              pm.target as targetUser,
+              pm.target_title
+            FROM
+              private_message_deliver pmd
+              INNER JOIN private_message pm ON pm.id = pmd.private_message_id
+            where
+              pmd.target_username = #{username}
+              AND pmd.deleted = 0
+            ORDER BY pm.create_time desc
+            LIMIT
+              #{start}, #{size}
+    </select>
+
+</mapper>

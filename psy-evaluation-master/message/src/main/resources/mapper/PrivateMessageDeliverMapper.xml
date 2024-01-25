@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.ww.mapper.PrivateMessageDeliverMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="org.ww.domain.PrivateMessageDeliver">
+        <id column="id" property="id" />
+        <result column="private_message_id" property="privateMessageId" />
+        <result column="target_username" property="targetUsername" />
+        <result column="status" property="status" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, private_message_id, target_username, status, deleted
+    </sql>
+
+    <insert id="insertBatch" parameterType="java.util.List" >
+        INSERT INTO private_message_deliver(private_message_id,target_username,status,deleted)
+        VALUES
+        <foreach collection="delivers" item="item" index="index" separator="," >
+            (#{item.privateMessageId},#{item.targetUsername},#{item.status},#{item.deleted})
+        </foreach>
+    </insert>
+
+</mapper>

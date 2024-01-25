@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.SchoolMapper">
+    <update id="updateSchoolPerson">
+        UPDATE schools SET charge_person = #{charge_person} WHERE deleted = 0 AND school_login = #{username}
+    </update>
+
+    <update id="plusStudentNumbers">
+        UPDATE schools SET student_numbers = student_numbers + 1, student_account_numbers = student_account_numbers + 1 WHERE deleted = 0 AND id = #{school_id}
+    </update>
+
+    <update id="plusBatchStudentNumbers">
+        UPDATE schools SET student_numbers = student_numbers + #{num}, student_account_numbers = student_account_numbers + #{num} WHERE deleted = 0 AND id = #{school_id}
+    </update>
+
+    <update id="reduceBatchStudentNumbers">
+        UPDATE schools SET student_numbers = student_numbers - #{num}, student_account_numbers = student_account_numbers - #{num} WHERE deleted = 0 AND id = #{school_id}
+    </update>
+
+    <select id="getAllCounty" resultType="string">
+        SELECT
+            county
+        FROM
+            schools
+        WHERE
+            province = #{province}
+          AND city = #{city}
+        GROUP BY
+            county
+        ORDER BY
+            CONVERT ( county USING gbk );
+    </select>
+
+    <select id="getAllCity" resultType="string">
+        SELECT
+            city
+        FROM
+            schools
+        WHERE
+            province = #{province}
+        GROUP BY
+            city
+        ORDER BY
+            CONVERT ( city USING gbk );
+    </select>
+
+    <select id="getLatestSchool" resultType="org.ww.domain.School">
+        select school_login from schools where province = #{province} and city = #{city} and county = #{county} and deleted = 0 order by school_login desc limit 1
+    </select>
+</mapper>

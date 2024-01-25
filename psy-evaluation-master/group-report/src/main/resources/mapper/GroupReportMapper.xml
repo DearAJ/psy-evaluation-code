@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.GroupReportMapper">
+    <resultMap id="BaseResultMap" type="org.ww.domain.GroupReport">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="schoolId" column="school_id" jdbcType="INTEGER"/>
+        <result property="taskId" column="task_id" jdbcType="INTEGER"/>
+        <result property="taskName" column="task_name" jdbcType="VARCHAR"/>
+        <result property="scaleId" column="scale_id" jdbcType="INTEGER"/>
+        <result property="scaleName" column="scale_name" jdbcType="VARCHAR"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="school" column="school" jdbcType="VARCHAR"/>
+        <result property="period" column="period" jdbcType="VARCHAR"/>
+        <result property="grade" column="grade" jdbcType="VARCHAR"/>
+        <result property="level" column="level" jdbcType="INTEGER"/>
+        <result property="createPerson" column="create_person" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <insert id="insertGroupReport">
+        insert into group_report
+        (id,name,school_id,task_id,
+         task_name,scale_id,scale_name,user_id,
+         school,period,grade,level,
+         create_person,create_time)
+        values (#{id,jdbcType=NUMERIC}, #{name,jdbcType=VARCHAR},#{schoolId,jdbcType=NUMERIC},#{taskId,jdbcType=NUMERIC},
+                #{taskName,jdbcType=VARCHAR},#{scaleId,jdbcType=NUMERIC},#{scaleName,jdbcType=VARCHAR},#{userId,jdbcType=NUMERIC},
+                #{school,jdbcType=VARCHAR},#{period,jdbcType=VARCHAR},#{grade,jdbcType=VARCHAR},#{level,jdbcType=NUMERIC},
+                #{createPerson,jdbcType=VARCHAR},#{createTime,jdbcType=VARCHAR})
+    </insert>
+</mapper>

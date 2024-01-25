@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.QuestionsMapper">
+    <select id="selectQuestionsByTaskIds" resultType="org.ww.domain.Questions">
+        select questions.* from questions
+        inner join
+        scale
+        on questions.scale_id = scale.id
+        inner join
+        task
+        on task.scale_id = scale.id
+        where task.id in
+        <foreach item="item" index="index" collection="taskIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="selectQuestionPairsByTaskIds" resultType="java.util.HashMap">
+        select questions.id, questions.main from questions
+        inner join
+        scale
+        on questions.scale_id = scale.id
+        inner join
+        task
+        on task.scale_id = scale.id
+        where task.id in
+        <foreach item="item" index="index" collection="taskIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

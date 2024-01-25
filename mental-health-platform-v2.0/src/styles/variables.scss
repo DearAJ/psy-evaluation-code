@@ -1,0 +1,37 @@
+$headerHeight: 65px;
+// $themeColor: #2d96f1;
+$themeColor: #854ed8;
+$themeColorLight: #CA9FFF;
+$meunBackgroundColor: #1b0036;
+$errorColor: #fd9308;
+$sidebarWidth: 240px;
+$foldSidebarWidth: 64px;
+$foldAvatarHeight: 120px;
+$navbarHeight: 40px;
+$progressColor: #2a91dd;
+$reportFontColor: #6aafc7;
+$activeSidebar: rgb(89, 57, 112);
+$backgroundColor: #F3F2F7;
+
+// 首页相关参数
+$homeHeaderHeight: 130px;
+$homeSidebarWidth: 196px;
+
+
+:export {
+  headerHeight: $headerHeight;
+  themeColor: $themeColor;
+  sidebarWidth: $sidebarWidth;
+  foldSidebarWidth: $foldSidebarWidth;
+  navbarHeight: $navbarHeight;
+  progressColor: $progressColor;
+  foldAvatarHeight: $foldAvatarHeight;
+  reportFontColor: $reportFontColor;
+  meunBackgroundColor: $meunBackgroundColor;
+  activeSidebar: $activeSidebar;
+  backgroundColor: $backgroundColor;
+  themeColorLight: $themeColorLight;
+  // home
+  homeHeaderHeight: $homeHeaderHeight;
+  homeSidebarWidth: $homeSidebarWidth;
+}

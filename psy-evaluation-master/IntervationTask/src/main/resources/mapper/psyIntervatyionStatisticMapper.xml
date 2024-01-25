@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.IntervationStatisticMapper">
+    <select id="selectStatisticRes" parameterType="String" resultType="org.ww.EntityDO.IntervationStatisticDO">
+        select p.period,p.grade,p.classes,p.crisis_level,count(p.crisis_level) as "intervation_nums" from (
+                select students.id,name,crisis_level,grade,period,classes,max(psyintervationfiles.create_time) from
+                    psyintervationfiles inner join students on psyintervationfiles.student_id=students.id
+                                        inner join psyintervationrecord on psyintervationfiles.psy_intervation_record_id=psyintervationrecord.id group by students.id ) as p
+        group by p.period,p.grade,p.classes,p.crisis_level
+        having
+        <if test="period!=null and period!=''">
+            p.period=#{period}
+        </if>
+        <if test="classes != null and classes!=''">
+            and p.classes=#{classes}
+        </if>
+        <if test="grade!= null and grade!=''">
+            and p.grade=#{grade}
+        </if>
+
+    </select>
+</mapper>

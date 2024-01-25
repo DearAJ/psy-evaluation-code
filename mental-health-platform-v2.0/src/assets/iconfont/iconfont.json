@@ -1,0 +1,107 @@
+{
+  "id": "3449940",
+  "name": "mental-health-platform",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "1493652",
+      "name": "home_fill_light",
+      "font_class": "home_fill_light",
+      "unicode": "e7d8",
+      "unicode_decimal": 59352
+    },
+    {
+      "icon_id": "566215",
+      "name": "警告",
+      "font_class": "jinggao",
+      "unicode": "e605",
+      "unicode_decimal": 58885
+    },
+    {
+      "icon_id": "6560968",
+      "name": "量表",
+      "font_class": "liangbiao",
+      "unicode": "e60a",
+      "unicode_decimal": 58890
+    },
+    {
+      "icon_id": "8839064",
+      "name": "心理档案管理",
+      "font_class": "xinlidanganguanli",
+      "unicode": "e68f",
+      "unicode_decimal": 59023
+    },
+    {
+      "icon_id": "10359986",
+      "name": "通知公告",
+      "font_class": "tongzhigonggao",
+      "unicode": "e602",
+      "unicode_decimal": 58882
+    },
+    {
+      "icon_id": "14998254",
+      "name": "报告管理",
+      "font_class": "baogaoguanli",
+      "unicode": "e649",
+      "unicode_decimal": 58953
+    },
+    {
+      "icon_id": "17407353",
+      "name": "任务管理",
+      "font_class": "renwuguanli",
+      "unicode": "e6df",
+      "unicode_decimal": 59103
+    },
+    {
+      "icon_id": "28903596",
+      "name": "组织管理",
+      "font_class": "zuzhiguanli",
+      "unicode": "e64c",
+      "unicode_decimal": 58956
+    },
+    {
+      "icon_id": "1309",
+      "name": "退出",
+      "font_class": "tuichu",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "791874",
+      "name": "退出",
+      "font_class": "ai-out",
+      "unicode": "e642",
+      "unicode_decimal": 58946
+    },
+    {
+      "icon_id": "3640197",
+      "name": "问号",
+      "font_class": "wenhao",
+      "unicode": "e610",
+      "unicode_decimal": 58896
+    },
+    {
+      "icon_id": "11459723",
+      "name": "消息",
+      "font_class": "xiaoxi",
+      "unicode": "e607",
+      "unicode_decimal": 58887
+    },
+    {
+      "icon_id": "15232396",
+      "name": "操作手册",
+      "font_class": "caozuoshouce",
+      "unicode": "e624",
+      "unicode_decimal": 58916
+    },
+    {
+      "icon_id": "23508192",
+      "name": "问号",
+      "font_class": "wenhao1",
+      "unicode": "e612",
+      "unicode_decimal": 58898
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.RoleMapper">
+
+    <select id="getRoleByUserId" parameterType="string" resultType="org.ww.vo.RoleVo">
+        select r.id,r.role,r.level from roles r where deleted = 0 AND username = #{username}
+    </select>
+
+    <update id="deleteRoleByUsernames">
+        UPDATE roles SET deleted = 1 WHERE username in
+        <foreach collection="usernames" item="username" index="index" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </update>
+
+</mapper>

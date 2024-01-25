@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.TeachersMapper">
+    <select id="getTeacherInfo" resultType="map">
+        SELECT schools.name as school, teachers.name, teachers.school_id, teachers.sex
+        FROM schools INNER JOIN teachers ON schools.id = teachers.school_id
+        WHERE teachers.deleted = 0 AND teachers.username = #{username}
+    </select>
+</mapper>

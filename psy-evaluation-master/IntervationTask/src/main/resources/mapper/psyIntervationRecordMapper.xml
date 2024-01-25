@@ -1,0 +1,661 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.PsyIntervationRecordMapper">
+
+
+    <select id="selectLatestByGroup" parameterType="String" resultType="org.ww.EntityDO.PsyIntervationRecordDO">
+        select  * from (
+            select * from psyintervationrecord
+                     having 1 order by intervation_time desc
+        ) as p group by file_id having
+        <if test="clevel!=null and clevel!=''">
+            crisis_level=#{clevel}
+
+        </if>
+        <if test="postProcessing!=null and postProcessing!=''">
+            and post_processing=#{postProcessing}
+        </if>
+        <if test="stuState!=null and stuState!=''">
+            and stu_state=#{stuState}
+        </if>
+        <if test="isTransfer!=null and isTransfer!=''">
+            and is_transfer=#{isTransfer}
+        </if>
+
+    </select>
+
+<!--    有记录：
+            有危机，预警；
+            无危机，如果次数大于1.预警；小于等于1.初筛；
+        无记录:
+            如果次数大于1.预警；小于等于1.初筛；
+-->
+    <select id="selectNewWarnIntervationSchemePageVO" parameterType="List" resultType="org.ww.EntityVO.IntervationSchemePageVO">
+        SELECT students.id as stuId, students.period as stuPeriod,
+        students.grade as stuGrade, students.classes as stuClass,
+        students.name as stuName,
+        task_user.user_id as userId,
+        task.semester as semester,
+        school_role.name as psyTeacherName,
+        schools.province,
+        schools.city,
+        schools.county,
+        schools.id as schoolId,
+        schools.name as schoolName,
+        t1.file_id as fileId,
+        record.is_transfer as isTransfer,
+        record.stu_state as stuState,
+        record.post_processing as postProcessing,
+        record.intervation_record as intervationContent,
+        record.crisis_level as crisisLevel,
+        if(record.create_time IS NOT NULL, record.create_time, t1.create_time) as createTime,
+        record.intervation_expire_time as expireTime,
+        scale.name as scaleName,
+        task.id as taskId,
+        task.name as taskName
+        FROM
+        (select f41.id as file_id, f41.student_id as student_id, f41.task_id as task_id, fu.record_id, f41.create_time,  fu.counter from(
+        select files.student_id, max(files.create_time) as max_create_time, null as record_id, count(1) as counter from
+        (
+        select psyintervationfiles.id, psyintervationfiles.task_id, psyintervationfiles.student_id, psyintervationfiles.user_id,
+        GREATEST(COALESCE(psy_intervation_last_record_id, 0),COALESCE(psy_intervation_crisis_id, 0)) as record_id,
+        create_time from
+        psy_evaluation.psyintervationfiles
+        ) files
+        left join
+        (
+        select psyintervationfiles.id, psyintervationfiles.task_id, psyintervationfiles.student_id, psyintervationfiles.user_id, GREATEST(COALESCE(psy_intervation_last_record_id, 0),COALESCE(psy_intervation_crisis_id, 0)) as record_id,create_time from psy_evaluation.psyintervationfiles
+        ) f12
+        on files.student_id = f12.student_id
+        and files.record_id &lt; f12.record_id
+                              left join
+                              psyintervationrecord record
+                              on files.record_id = record.id
+                              where f12.id is null and (record.crisis_level is null)
+        group by files.student_id
+        UNION
+        select f5.student_id, f5.max_create_time, if(f5.counter > 0, f5.record_id, null) as record_id, f5.counter from
+        (
+        select f4.student_id, max(f4.create_time) as max_create_time, f13.record_id, count(1) as counter from
+        (
+        select files.student_id, files.task_id, record.id as record_id, files.create_time from
+        (
+        select psyintervationfiles.id, psyintervationfiles.task_id, psyintervationfiles.student_id, psyintervationfiles.user_id,
+        GREATEST(COALESCE(psy_intervation_last_record_id, 0),COALESCE(psy_intervation_crisis_id, 0)) as record_id, create_time
+        from
+        psy_evaluation.psyintervationfiles
+        ) files
+        left join
+        (
+        select psyintervationfiles.id, psyintervationfiles.task_id, psyintervationfiles.student_id, psyintervationfiles.user_id, GREATEST(COALESCE(psy_intervation_last_record_id, 0),COALESCE(psy_intervation_crisis_id, 0)) as record_id,create_time from
+        psy_evaluation.psyintervationfiles
+        ) f12
+        on files.student_id = f12.student_id
+        and files.record_id &lt; f12.record_id
+                              left join
+                              psyintervationrecord record
+                              on files.record_id = record.id
+                              where f12.id is null and (record.crisis_level = '无危机')
+        ) as f13
+        left join
+        psyintervationfiles f4
+        on f13.student_id = f4.student_id
+        and f13.create_time &lt;= f4.create_time
+        GROUP BY f13.student_id
+        ) as f5
+        ) as fu
+        inner join psy_evaluation.psyintervationfiles f41
+        on fu.student_id = f41.student_id
+        and fu.max_create_time = f41.create_time
+        where fu.counter > 0
+
+        <if test="counter gt 1">
+        UNION
+        select files.id, files.student_id, files.task_id,record.id as record_id, files.create_time, 2 as counter from (
+        select psyintervationfiles.id, psyintervationfiles.task_id, psyintervationfiles.student_id, psyintervationfiles.user_id, GREATEST(COALESCE(psy_intervation_last_record_id, 0),COALESCE(psy_intervation_crisis_id, 0)) as record_id,create_time from
+        psy_evaluation.psyintervationfiles) files
+        left join (
+        select psyintervationfiles.id, psyintervationfiles.task_id, psyintervationfiles.student_id, psyintervationfiles.user_id, GREATEST(COALESCE(psy_intervation_last_record_id, 0),COALESCE(psy_intervation_crisis_id, 0)) as record_id,create_time
+        from
+        psy_evaluation.psyintervationfiles) f2
+        on files.student_id = f2.student_id
+        and files.record_id &lt; f2.record_id
+                              left join psyintervationrecord record
+                              on files.record_id = record.id
+                              where f2.id is null and (record.crisis_level is not null and record.crisis_level != '无危机')
+        </if>
+        ) t1
+      INNER JOIN task
+      on task.id = t1.task_id
+      INNER JOIN task_user
+      on task_user.task_id = task.id
+      and task.deleted = 0
+        INNER JOIN scale
+        on task.scale_id = scale.id
+        INNER JOIN schools
+        on schools.id = task_user.school_id
+        INNER JOIN school_role
+        on schools.id = school_role.school_id
+        and school_role.role = '学校管理员'
+        INNER JOIN users
+        ON users.id = task_user.user_id
+        INNER JOIN students
+        ON students.id_number = users.username
+        and students.id = t1.student_id
+        and students.school_year = task_user.school_year
+        INNER JOIN psyintervationrecord as record
+        on t1.record_id=record.id
+        WHERE task_user.warning=1 and task_user.valid=1
+        and task_user.to_retest=0 and students.deleted=0
+        and students.archived = 0
+        and task_user.archived = 0
+        and task.archived = 0
+        <if test="counter gt 1">
+            and t1.counter &gt; 1
+        </if>
+
+        <if test="counter lt 2">
+        and t1.counter &lt;= 1
+        </if>
+
+        and task_user.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+
+        <if test="isTransfer!=null">
+            and record.is_transfer=#{isTransfer}
+        </if>
+        <if test="stuName!=null and stuName!=''">
+            and students.name=#{stuName}
+        </if>
+        <if test="stuPeriod!=null and stuPeriod!=''">
+            and students.period=#{stuPeriod}
+        </if>
+        <if test="stuGrade!=null and stuGrade!=''">
+            and students.grade=#{stuGrade}
+        </if>
+        <if test="stuClass!=null and stuClass!=''">
+            and students.classes=#{stuClass}
+        </if>
+        <if test="stuState!=null and stuState!=''">
+            and record.stu_state=#{stuState}
+        </if>
+        <if test="postProcessing!=null and postProcessing!=''">
+            and record.post_processing=#{postProcessing}
+        </if>
+
+        <if test="semester!=null and semester!=''">
+            and task.semester=#{semester}
+        </if>
+
+        <if test="expiredTime!=null">
+            and record.intervation_expire_time &lt; #{expiredTime}
+        </if>
+
+        <if test="crisisLevel!=null">
+                and crisisLevel = #{crisisLevel}
+        </if>
+<!--        and task_user.archived = 0-->
+<!--        group by files.student_id-->
+    </select>
+
+    <select id="selectWarnIntervationSchemePageVO" parameterType="List" resultType="org.ww.EntityVO.IntervationSchemePageVO">
+        SELECT students.id as stuId, students.period as stuPeriod,
+        students.grade as stuGrade, students.classes as stuClass,
+        students.name as stuName,
+        task_user.user_id as userId,
+        task.semester as semester,
+        school_role.name as psyTeacherName,
+        schools.province,
+        schools.city,
+        schools.county,
+        schools.id as schoolId,
+        schools.name as schoolName,
+        files.id as fileId,
+        record.is_transfer as isTransfer,
+        record.stu_state as stuState,
+        record.post_processing as postProcessing,
+        record.intervation_record as intervationContent,
+        record.crisis_level as crisisLevel,
+        if(record.create_time IS NOT NULL, record.create_time, files.create_time) as createTime,
+        record.intervation_expire_time as expireTime,
+        scale.name as scaleName,
+        task.id as taskId,
+        task.name as taskName
+        FROM task_user
+        INNER JOIN task
+        on task_user.task_id = task.id
+        and task.deleted = 0
+        INNER JOIN scale
+        on task.scale_id = scale.id
+        INNER JOIN schools
+        on schools.id = task_user.school_id
+        INNER JOIN school_role
+        on schools.id = school_role.school_id
+        and school_role.role = '学校管理员'
+        INNER JOIN users
+        ON users.id = task_user.user_id
+        INNER JOIN students
+        ON students.id_number = users.username
+        INNER JOIN
+        (SELECT id, task_id, student_id, user_id,
+        GREATEST(COALESCE(psy_intervation_last_record_id, 0),COALESCE(psy_intervation_crisis_id, 0)) as record_id
+        FROM psyintervationfiles) as files
+<!--        ON students.id_number = users.username and students.school_year = task_user.school_year-->
+<!--        INNER JOIN psyintervationfiles as files-->
+        ON students.id = files.student_id
+        AND task_user.task_id = files.task_id
+        INNER JOIN psyintervationrecord as record
+        on files.record_id=record.id
+        WHERE task_user.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and task_user.warning=1 and task_user.valid=1
+        and task_user.to_retest=0 and students.deleted=0
+        <if test="isTransfer!=null">
+            and record.is_transfer=#{isTransfer}
+        </if>
+        <if test="stuName!=null and stuName!=''">
+            and students.name=#{stuName}
+        </if>
+        <if test="stuPeriod!=null and stuPeriod!=''">
+            and students.period=#{stuPeriod}
+        </if>
+        <if test="stuGrade!=null and stuGrade!=''">
+            and students.grade=#{stuGrade}
+        </if>
+        <if test="stuClass!=null and stuClass!=''">
+            and students.classes=#{stuClass}
+        </if>
+        <if test="stuState!=null and stuState!=''">
+            and record.stu_state=#{stuState}
+        </if>
+        <if test="crisisLevel!=null and crisisLevel!=''">
+            and record.crisis_level=#{crisisLevel}
+        </if>
+
+        <if test="crisisLevel==null">
+            and record.crisis_level!='无危机'
+        </if>
+        <if test="postProcessing!=null and postProcessing!=''">
+            and record.post_processing=#{postProcessing}
+        </if>
+
+        <if test="semester!=null and semester!=''">
+            and task.semester=#{semester}
+        </if>
+
+        <if test="expiredTime!=null">
+            and record.intervation_expire_time &lt; #{expiredTime}
+        </if>
+
+        <if test="crisisLevel==null">
+        UNION
+        SELECT students.id as stuId, students.period as stuPeriod,
+        students.grade as stuGrade, students.classes as stuClass,
+        students.name as stuName,
+        task_user.user_id as userId,
+        task.semester as semester,
+        school_role.name as psyTeacherName,
+        schools.province,
+        schools.city,
+        schools.county,
+        schools.id as schoolId,
+        schools.name as schoolName,
+        files.id as fileId,
+        record.is_transfer as isTransfer,
+        record.stu_state as stuState,
+        record.post_processing as postProcessing,
+        record.intervation_record as intervationContent,
+        record.crisis_level as crisisLevel,
+        if(record.create_time IS NOT NULL, record.create_time, files.create_time) as createTime,
+        record.intervation_expire_time as expireTime,
+        scale.name as scaleName,
+        task.id as taskId,
+        task.name as taskName
+        FROM task_user
+        INNER JOIN task
+        on task_user.task_id = task.id
+        and task.deleted = 0
+        INNER JOIN scale
+        on task.scale_id = scale.id
+        INNER JOIN schools
+        on schools.id = task_user.school_id
+        INNER JOIN school_role
+        on schools.id = school_role.school_id
+        and school_role.role = '学校管理员'
+        INNER JOIN users
+        ON users.id = task_user.user_id
+        INNER JOIN students
+        ON students.id_number = users.username
+        INNER JOIN (SELECT id, task_id, student_id, user_id,
+            GREATEST(COALESCE(psy_intervation_last_record_id, 0),COALESCE(psy_intervation_crisis_id, 0)) as record_id
+            FROM psyintervationfiles) as files
+<!--        ON students.id_number = users.username and students.school_year = task_user.school_year-->
+<!--        INNER JOIN psyintervationfiles as files-->
+        ON students.id = files.student_id
+        AND task_user.task_id = files.task_id
+        LEFT JOIN psyintervationrecord as record
+        on record.id = files.record_id
+        WHERE task_user.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and task_user.warning=1 and task_user.valid=1
+        and task_user.to_retest=0 and students.deleted=0
+        <if test="isTransfer!=null">
+            and record.is_transfer=#{isTransfer}
+        </if>
+        <if test="stuName!=null and stuName!=''">
+            and students.name=#{stuName}
+        </if>
+        <if test="stuPeriod!=null and stuPeriod!=''">
+            and students.period=#{stuPeriod}
+        </if>
+        <if test="stuGrade!=null and stuGrade!=''">
+            and students.grade=#{stuGrade}
+        </if>
+        <if test="stuClass!=null and stuClass!=''">
+            and students.classes=#{stuClass}
+        </if>
+        <if test="stuState!=null and stuState!=''">
+            and record.stu_state=#{stuState}
+        </if>
+        <if test="postProcessing!=null and postProcessing!=''">
+            and record.post_processing=#{postProcessing}
+        </if>
+
+        <if test="semester!=null and semester!=''">
+            and task.semester=#{semester}
+        </if>
+        <if test="expiredTime!=null">
+            and record.intervation_expire_time &lt; #{expiredTime}
+        </if>
+        AND record.crisis_level is null
+            OR record.crisis_level = "无危机"
+        group by files.student_id
+        having count(distinct files.task_id) > 1
+
+        </if>
+    </select>
+
+    <select id="selectPreIntervationSchemePageVO" parameterType="List" resultType="org.ww.EntityVO.IntervationSchemePageVO">
+
+        <if test="crisisLevel==null">
+        SELECT students.id as stuId, students.period as stuPeriod,
+        students.grade as stuGrade, students.classes as stuClass,
+        students.name as stuName,
+        task_user.user_id as userId,
+        task.semester as semester,
+        school_role.name as psyTeacherName,
+        schools.province,
+        schools.city,
+        schools.county,
+        schools.id as schoolId,
+        schools.name as schoolName,
+        files.id as fileId,
+        record.is_transfer as isTransfer,
+        record.stu_state as stuState,
+        record.post_processing as postProcessing,
+        record.intervation_record as intervationContent,
+        record.crisis_level as crisisLevel,
+        if(record.create_time IS NOT NULL, record.create_time, files.create_time) as createTime,
+        record.intervation_expire_time as expireTime,
+        scale.name as scaleName,
+        task.id as taskId,
+        task.name as taskName
+        FROM task_user
+        INNER JOIN task
+        on task_user.task_id = task.id
+        and task.deleted = 0
+        INNER JOIN scale
+        on task.scale_id = scale.id
+        INNER JOIN schools
+        on schools.id = task_user.school_id
+        INNER JOIN school_role
+        on schools.id = school_role.school_id
+        and school_role.role = '学校管理员'
+        INNER JOIN users
+        ON users.id = task_user.user_id
+        INNER JOIN students
+        ON students.id_number = users.username and students.school_year = task_user.school_year
+        INNER JOIN psyintervationfiles as files
+        ON students.id = files.student_id
+        AND task_user.task_id = files.task_id
+        LEFT JOIN
+        (select a.* from psyintervationrecord a
+        left join psyintervationrecord b
+        on a.file_id = b.file_id
+        and a.create_time &lt; b.create_time
+        where b.id is null
+        ) as record
+        on record.file_id = files.id
+        WHERE task_user.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and task_user.warning=1 and task_user.valid=1
+        and task_user.to_retest=0 and students.deleted=0
+        group by files.student_id
+        having count(distinct files.task_id) = 1
+        and record.crisis_level is null
+        <if test="isTransfer!=null">
+            and record.is_transfer=#{isTransfer}
+        </if>
+        <if test="stuName!=null and stuName!=''">
+            and students.name=#{stuName}
+        </if>
+        <if test="stuPeriod!=null and stuPeriod!=''">
+            and students.period=#{stuPeriod}
+        </if>
+        <if test="stuGrade!=null and stuGrade!=''">
+            and students.grade=#{stuGrade}
+        </if>
+        <if test="stuClass!=null and stuClass!=''">
+            and students.classes=#{stuClass}
+        </if>
+        <if test="stuState!=null and stuState!=''">
+            and record.stu_state=#{stuState}
+        </if>
+        <if test="postProcessing!=null and postProcessing!=''">
+            and record.post_processing=#{postProcessing}
+        </if>
+
+        <if test="semester!=null and semester!=''">
+            and task.semester=#{semester}
+        </if>
+
+        UNION
+        </if>
+        SELECT students.id as stuId, students.period as stuPeriod,
+        students.grade as stuGrade, students.classes as stuClass,
+        students.name as stuName,
+        task_user.user_id as userId,
+        task.semester as semester,
+        school_role.name as psyTeacherName,
+        schools.province,
+        schools.city,
+        schools.county,
+        schools.id as schoolId,
+        schools.name as schoolName,
+        files.id as fileId,
+        record.is_transfer as isTransfer,
+        record.stu_state as stuState,
+        record.post_processing as postProcessing,
+        record.intervation_record as intervationContent,
+        record.crisis_level as crisisLevel,
+        if(record.create_time IS NOT NULL, record.create_time, files.create_time) as createTime,
+        record.intervation_expire_time as expireTime,
+        scale.name as scaleName,
+        task.id as taskId,
+        task.name as taskName
+        FROM task_user
+        INNER JOIN task
+        on task_user.task_id = task.id
+        and task.deleted = 0
+        INNER JOIN scale
+        on task.scale_id = scale.id
+        INNER JOIN schools
+        on schools.id = task_user.school_id
+        INNER JOIN school_role
+        on schools.id = school_role.school_id
+        and school_role.role = '学校管理员'
+        INNER JOIN users
+        ON users.id = task_user.user_id
+        INNER JOIN students
+        ON students.id_number = users.username
+        INNER JOIN psyintervationfiles as files
+        ON students.id = files.student_id
+        AND task_user.task_id = files.task_id
+        LEFT JOIN
+        (select a.* from psyintervationrecord a
+        left join psyintervationrecord b
+        on a.file_id = b.file_id
+        and a.create_time &lt; b.create_time
+        where b.id is null
+        ) as record
+        on record.file_id = files.id
+        WHERE task_user.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and task_user.warning=1 and task_user.valid=1
+        and task_user.to_retest=0 and students.deleted=0
+        <if test="crisisLevel!=null and crisisLevel!=''">
+            and record.crisis_level=#{crisisLevel}
+        </if>
+        <if test="crisisLevel==null">
+            and record.crisis_level = '无危机'
+        </if>
+        <if test="isTransfer!=null">
+            and record.is_transfer=#{isTransfer}
+        </if>
+        <if test="stuName!=null and stuName!=''">
+            and students.name=#{stuName}
+        </if>
+        <if test="stuPeriod!=null and stuPeriod!=''">
+            and students.period=#{stuPeriod}
+        </if>
+        <if test="stuGrade!=null and stuGrade!=''">
+            and students.grade=#{stuGrade}
+        </if>
+        <if test="stuClass!=null and stuClass!=''">
+            and students.classes=#{stuClass}
+        </if>
+        <if test="stuState!=null and stuState!=''">
+            and record.stu_state=#{stuState}
+        </if>
+        <if test="postProcessing!=null and postProcessing!=''">
+            and record.post_processing=#{postProcessing}
+        </if>
+        <if test="semester!=null and semester!=''">
+            and task.semester=#{semester}
+        </if>
+    </select>
+
+    <select id="selectIntervationSchemePageVO" parameterType="List" resultType="org.ww.EntityVO.IntervationSchemePageVO">
+        SELECT students.id as stuId, students.period as stuPeriod,
+        students.grade as stuGrade, students.classes as stuClass,
+        students.name as stuName,
+        task_user.user_id as userId,
+        school_role.name as psyTeacherName,
+        schools.province,
+        schools.city,
+        schools.county,
+        schools.id as schoolId,
+        schools.name as schoolName,
+        files.id as fileId,
+        record.is_transfer as isTransfer,
+        record.stu_state as stuState,
+        record.post_processing as postProcessing,
+        record.intervation_record as intervationContent,
+        record.crisis_level as crisisLevel,
+        record.create_time as createTime,
+        record.intervation_expire_time as expireTime,
+        scale.name as scaleName,
+        task.id as taskId,
+        task.name as taskName
+        FROM task_user
+        LEFT JOIN task_user a
+        ON a.user_id = task_user.user_id AND a.school_id = task_user.school_id AND a.task_id = task_user.task_id
+        AND task_user.submit_time &lt; a.submit_time
+        INNER JOIN task
+        on task_user.task_id = task.id
+        and task.deleted = 0
+        INNER JOIN scale
+        on task.scale_id = scale.id
+        INNER JOIN schools
+        on schools.id = task_user.school_id
+        INNER JOIN school_role
+        on schools.id = school_role.school_id
+        and school_role.role = '学校管理员'
+        INNER JOIN users
+        ON users.id = task_user.user_id
+        INNER JOIN students
+        ON students.id_number = users.username
+        INNER JOIN psyintervationfiles as files
+        ON students.id = files.student_id
+        AND task_user.task_id = files.task_id
+        LEFT JOIN psyintervationrecord as record
+        on record.file_id = files.id
+        WHERE a.submit_time is NULL
+        AND task_user.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and task_user.warning=1 and task_user.valid=1
+        and task_user.to_retest=0 and students.deleted=0
+        <if test="isTransfer!=null">
+            and record.is_transfer=#{isTransfer}
+        </if>
+        <if test="stuName!=null and stuName!=''">
+            and students.name=#{stuName}
+        </if>
+        <if test="stuPeriod!=null and stuPeriod!=''">
+            and students.period=#{stuPeriod}
+        </if>
+        <if test="stuGrade!=null and stuGrade!=''">
+            and students.grade=#{stuGrade}
+        </if>
+        <if test="stuClass!=null and stuClass!=''">
+            and students.classes=#{stuClass}
+        </if>
+        <if test="stuState!=null and stuState!=''">
+            and record.stu_state=#{stuState}
+        </if>
+        <if test="crisisLevel!=null and crisisLevel!=''">
+            and record.crisis_level=#{crisisLevel}
+        </if>
+        <if test="postProcessing!=null and postProcessing!=''">
+            and record.post_processing=#{postProcessing}
+        </if>
+    </select>
+
+    <select id="selectExpireStudentIds" parameterType="List" resultType="Long" >
+
+        SELECT distinct files.student_id FROM psyintervationrecord as record
+        left join psyintervationrecord a
+        on record.file_id = a.file_id
+        and record.intervation_time &lt; a.intervation_time
+                                      inner join psyintervationfiles as files
+                                      on record.file_id = files.id
+                                      inner join students
+                                      on students.id = files.student_id
+                                      where record.crisis_level != '无危机'
+        and a.id is NULL
+        and record.intervation_expire_time &lt; now()
+        and students.school_id in
+        <foreach item="item" index="index" collection="schoolIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

@@ -1,0 +1,72 @@
+spring:
+  profiles:
+    active: test
+---
+server:
+  port: 8009
+spring:
+  profiles: test
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: dea35e6d-dc60-4ec2-91e3-b4d10be07c05
+        username: nacos
+        password: nacos
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: dea35e6d-dc60-4ec2-91e3-b4d10be07c05
+        group: DEFAULT_GROUP  # 默认分组就是DEFAULT_GROUP，如果使用默认分组可以不配置
+        file-extension: yml   #默认properties
+    sentinel:
+      transport:
+        dashboard: 127.0.0.1:8080 #配置Sentinel dashboard地址
+        port: 8719  #这个端口配置会在应用对应的机器上启动一个Http Server，该Server会与 Sentinel 控制台做交互
+  application:
+    name: ww-management
+---
+server:
+  port: 8009
+spring:
+  profiles: pre
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: 7c4d2f6e-4466-43d7-842f-ec803b849e6e
+        username: nacos
+        password: nacos
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: 7c4d2f6e-4466-43d7-842f-ec803b849e6e
+        group: DEFAULT_GROUP  # 默认分组就是DEFAULT_GROUP，如果使用默认分组可以不配置
+        file-extension: yml   #默认properties
+    sentinel:
+      transport:
+        dashboard: 127.0.0.1:8080 #配置Sentinel dashboard地址
+        port: 8719  #这个端口配置会在应用对应的机器上启动一个Http Server，该Server会与 Sentinel 控制台做交互
+  application:
+    name: ww-management
+---
+server:
+  port: 8009
+spring:
+  profiles: prd
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: b892c3fe-edb2-4533-9761-bed10603d555
+        username: nacos
+        password: nacos
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: b892c3fe-edb2-4533-9761-bed10603d555
+        group: DEFAULT_GROUP  # 默认分组就是DEFAULT_GROUP，如果使用默认分组可以不配置
+        file-extension: yml   #默认properties
+    sentinel:
+      transport:
+        dashboard: 127.0.0.1:8080 #配置Sentinel dashboard地址
+        port: 8719  #这个端口配置会在应用对应的机器上启动一个Http Server，该Server会与 Sentinel 控制台做交互
+  application:
+    name: ww-management

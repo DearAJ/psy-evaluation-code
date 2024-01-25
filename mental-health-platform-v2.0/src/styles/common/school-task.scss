@@ -1,0 +1,72 @@
+@import "@/styles/mixin.scss";
+.school-task-container {
+  @include container;
+  padding: 10px;
+  .header-box {
+    height: 40px;
+    line-height: 40px;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px #e2e2e2 solid;
+    span {
+      color: #878787;
+    }
+    .btn-group {
+      margin-right: 50px;
+      .upload {
+        display: inline-block;
+        margin-left: 10px;
+      }
+    }
+  }
+  .search-container {
+    height: 50px;
+    line-height: 50px;
+    display: flex;
+    margin: 10px 10px 0 10px;
+    .search-box {
+      display: flex;
+      width: 25%;
+      margin: 0 20px;
+      span {
+        flex: 0 0 60px;
+        text-align: left;
+        font-size: 14px;
+        margin-right: 10px;
+      }
+    }
+    .search-btn {
+      width: 25%;
+      margin: 0 20px;
+      text-align: center;
+    }
+  }
+
+  .content-container {
+    padding: 20px 10px;
+    .page-block {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .list-title {
+      color: #656565;
+      margin: 5px 5px 10px 5px;
+    }
+  }
+
+  .dialog-block {
+    margin: 0 auto;
+    text-align: center;
+    p {
+      margin: 20px 0;
+      font-size: 16px;
+    }
+    .btn {
+      width: 200px;
+      margin-top: 30px;
+    }
+    .warn-p {
+      margin: 5px 0;
+    }
+  }
+}

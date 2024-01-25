@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.ww.mapper.TelGroupMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="org.ww.domain.TelGroup">
+        <id column="id" property="id" />
+        <result column="type" property="type" />
+        <result column="province" property="province" />
+        <result column="city" property="city" />
+        <result column="county" property="county" />
+        <result column="school" property="school" />
+        <result column="admin" property="admin" />
+        <result column="username" property="username" />
+        <result column="secret_id" property="secretId" />
+        <result column="secret_key" property="secretKey" />
+        <result column="sdk_app_id" property="sdkAppId" />
+        <result column="seat_account" property="seatAccount" />
+        <result column="cdr_last_fetch_timestamp" property="cdrLastFetchTimestamp" />
+        <result column="create_time" property="createTime" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, type, province, city, county, school, admin, username, secret_id, secret_key, sdk_app_id, seat_account, cdr_last_fetch_timestamp, create_time, deleted
+    </sql>
+
+</mapper>

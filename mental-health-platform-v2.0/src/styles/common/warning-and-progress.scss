@@ -1,0 +1,96 @@
+@import "@/styles/mixin.scss";
+@import "@/styles/variables.scss";
+.warning-container {
+  margin: 30px 50px;
+  .progress-block {
+    display: flex;
+    .progress-box {
+      width: 33.3%;
+      flex: 0 0 auto;
+      position: relative;
+      margin-top: 40px;
+      display: flex;
+      justify-content: center;
+      .progress {
+        width: 40%;
+        position: relative;
+        flex: 0 0 auto;
+        padding-bottom: 40%;
+        height: 0;
+        box-sizing: border-box;
+        .title {
+          display: flex;
+          height: 20px;
+          margin-top: -40px;
+          .outside {
+            width: 20px;
+            height: 20px;
+            background-color: $themeColorLight;
+            opacity: 0.2;
+            border-radius: 50%;
+          }
+          .inner {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: $themeColor;
+            border-radius: 50%;
+            top: -35px;
+            left: 5px;
+          }
+          p {
+            margin-left: 7px;
+            height: 100%;
+            line-height: 18px;
+            font-size: 18px;
+          }
+        }
+        .circle-progress {
+          width: 100%;
+          height: 100%;
+          position: absolute;
+          top: 0;
+          left: 0;
+        }
+      }
+      .info {
+        margin-left: 30px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        .info-title {
+          font-size: 18px;
+          font-family: Microsoft YaHei;
+          font-weight: 400;
+          color: #C190FE;
+        }
+        .info-data {
+          .data {
+            font-size: 25px;
+            font-weight: bold;
+            color: $themeColor;
+          }
+          .extra {
+            font-size: 15px;
+            font-family: Microsoft YaHei;
+            font-weight: 400;
+            color: #C190FE;
+            margin-left: 5px;
+          }
+        }
+      }
+    }
+  }
+
+  .warning-block {
+    margin-top: 60px;
+    position: relative;
+    .title {
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 24px;
+      font-family: Microsoft YaHei;
+      font-weight: 400;
+    }
+  }
+}

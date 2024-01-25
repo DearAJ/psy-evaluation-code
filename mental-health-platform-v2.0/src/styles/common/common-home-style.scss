@@ -1,0 +1,66 @@
+@import "@/styles/mixin.scss";
+@import "@/styles/variables.scss";
+
+.current-task-container {
+  @include container;
+  padding: 10px 20px;
+  .header {
+    height: 40px;
+    line-height: 40px;
+    color: #878787;
+    font-size: 18px;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px #b6b6b6 solid;
+    span:last-of-type {
+      color: black;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    span:last-of-type:hover {
+      color: $themeColor;
+    }
+  }
+
+  .task-content-block {
+    height: 45vh;
+    display: flex;
+    width: 100%;
+    .task-introduce {
+      width: 35%;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 20px 20px 10px 20px;
+      .info-block {
+        font-size: 13px;
+        // width: 200px;
+        // text-align: left;
+        p {
+          margin-top: 10px;
+          &:first-of-type {
+            margin-top: 20px;
+          }
+        }
+      }
+      .button {
+        margin-top: 20px;
+        border-radius: 20px;
+      }
+    }
+    .current-content-table {
+      width: 65%;
+      margin: 20px 10px 10px 10px;
+      .p-title {
+        margin-bottom: 10px;
+        text-align: right;
+        color: #878787;
+        cursor: pointer;
+        &:hover {
+          color: $themeColor;
+        }
+      }
+    }
+  }
+}

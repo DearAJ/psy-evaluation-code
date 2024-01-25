@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.UserMapper">
+
+    <select id="findByUsername" resultType="org.ww.vo.UserVo" parameterType="string">
+        SELECT id,username,password,update_time,create_time,enabled,avatar
+        FROM users
+        WHERE username = #{username} AND deleted = 0
+        order by id desc
+        limit 1
+    </select>
+
+    <select id="getUserInfo" resultType="map">
+        SELECT
+            roles.role,
+            roles.level,
+            users.username,
+            users.create_time,
+            users.update_time,
+            users.enabled,
+            users.avatar
+        FROM
+            roles
+                INNER JOIN users ON roles.username = users.username
+        WHERE
+            users.id = #{id}
+          AND users.deleted = 0
+          AND roles.deleted = 0
+          order by roles.id desc
+          limit 1
+    </select>
+
+    <select id="getNameByUserId" resultType="map">
+        SELECT
+            t2.name,
+            t2.period,
+            t2.grade,
+            t2.classes
+        FROM
+            ( SELECT * FROM users WHERE id = #{user_id} ) AS t1
+            INNER JOIN students AS t2 ON t1.username = t2.username and t2.school_year = #{schoolYear};
+    </select>
+
+    <update id="updateUserEnabled">
+        UPDATE users SET enabled = #{enabled}, avatar = #{avatar} WHERE username = #{username} AND deleted = 0
+    </update>
+
+    <update id="deleteUsersByUsernames">
+        UPDATE users SET deleted = 1 WHERE username in
+        <foreach collection="usernames" item="username" index="index" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </update>
+
+    <update id="modifyPass">
+        UPDATE users SET password = #{password} WHERE username = #{username}
+    </update>
+
+</mapper>

@@ -1,0 +1,19 @@
+server:
+  port: 8009
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: public
+        username: nacos
+        password: nacos
+      config:
+        server-addr: 127.0.0.1:8848
+        file-extension: yml   #默认properties
+    sentinel:
+      transport:
+        dashboard: 127.0.0.1:8080 #配置Sentinel dashboard地址
+        port: 8719  #这个端口配置会在应用对应的机器上启动一个Http Server，该Server会与 Sentinel 控制台做交互
+  application:
+    name: ww-management

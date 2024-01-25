@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.StudentsMapper">
+    <select id="getStudentInfo" resultType="map">
+        SELECT schools.name as school, students.name, students.school_id, students.period, students.grade, students.classes, students.sex, students.student_id, students.student_code, students.graduated
+        FROM schools INNER JOIN students ON schools.id = students.school_id
+        WHERE students.deleted = 0
+          AND archived = 0
+          AND students.username = #{username}
+        order by students.id desc
+        limit 1
+    </select>
+
+    <update id="updateStudentGraduated">
+        update students set graduated = 1, archived = 1 where id = #{id} and deleted = 0
+    </update>
+
+    <update id="updateStudentGrade">
+        update students set grade = #{grade} where id = #{id} and deleted = 0
+    </update>
+</mapper>

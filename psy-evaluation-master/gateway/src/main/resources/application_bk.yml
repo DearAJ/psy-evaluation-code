@@ -1,0 +1,208 @@
+server:
+  port: 8008
+spring:
+  application:
+    name: ww-gateway
+  redis:
+    database: 0
+    host: localhost
+    port: 6379
+    password:
+  servlet:
+    multipart:
+      max-file-size: 1024MB
+      max-request-size: 1024MB
+  zipkin:
+    base-url: http://localhost:9411
+  sleuth:
+    sampler:
+      probability: 1.0
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: dea35e6d-dc60-4ec2-91e3-b4d10be07c05
+    # Sentinel熔断器
+    sentinel:
+      transport:
+        dashboard: 127.0.0.1:8080 #配置Sentinel dashboard地址
+        port: 8719  #这个端口配置会在应用对应的机器上启动一个Http Server，该Server会与 Sentinel 控制台做交互
+    # 网关路由配置
+    gateway:
+      # 设置与服务注册发现组件结合，这样可以采用服务名的路由策略
+      discovery:
+        locator:
+          enabled: true
+      # 配置路由规则
+      routes:
+        # 采用自定义路由ID
+        - id: ww-auth
+          # 采用 LoadBalanceClient 方式请求，以 lb:// 开头，后面的是注册在 Nacos 上的服务名
+          uri: lb://ww-auth
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+            - name: Hystrix  # 熔断
+              args:
+                name: fallbackcmd
+                # fallback 时调用的方法 http://localhost:8080/fallback
+                fallbackUri: forward:/fallback
+        - id: ww-user
+          # 采用 LoadBalanceClient 方式请求，以 lb:// 开头，后面的是注册在 Nacos 上的服务名
+          uri: lb://ww-user
+          predicates:
+            - Path=/user/**
+          filters:
+            - StripPrefix=0
+            - name: Hystrix # 熔断
+              args:
+                name: fallbackcmd
+                # fallback 时调用的方法 http://localhost:8080/fallback
+                fallbackUri: forward:/fallback
+        - id: ww-management
+          # 采用 LoadBalanceClient 方式请求，以 lb:// 开头，后面的是注册在 Nacos 上的服务名
+          uri: lb://ww-management
+          predicates:
+            - Path=/manage/**
+          filters:
+            - StripPrefix=0
+            - name: Hystrix # 熔断
+              args:
+                name: fallbackcmd
+                # fallback 时调用的方法 http://localhost:8080/fallback
+                fallbackUri: forward:/fallback
+        - id: ww-task
+          # 采用 LoadBalanceClient 方式请求，以 lb:// 开头，后面的是注册在 Nacos 上的服务名
+          uri: lb://ww-task
+          predicates:
+            - Path=/task/**
+          filters:
+            - StripPrefix=0
+            - name: Hystrix # 熔断
+              args:
+                name: fallbackcmd
+                # fallback 时调用的方法 http://localhost:8080/fallback
+                fallbackUri: forward:/fallback
+        - id: ww-scale
+          # 采用 LoadBalanceClient 方式请求，以 lb:// 开头，后面的是注册在 Nacos 上的服务名
+          uri: lb://ww-task
+          predicates:
+            - Path=/scale/**
+          filters:
+            - StripPrefix=0
+            - name: Hystrix # 熔断
+              args:
+                name: fallbackcmd
+                # fallback 时调用的方法 http://localhost:8080/fallback
+                fallbackUri: forward:/fallback
+
+        - id: ww-UserFilesTask
+          # 采用 LoadBalanceClient 方式请求，以 lb:// 开头，后面的是注册在 Nacos 上的服务名
+          uri: lb://ww-UserFilesTask
+          predicates:
+            - Path=/psyUserFilesTask/**
+          filters:
+            - StripPrefix=0
+            - name: Hystrix  # 熔断
+              args:
+                name: fallbackcmd
+                # fallback 时调用的方法 http://localhost:8080/fallback
+                fallbackUri: forward:/fallback
+
+        - id: ww-IntervationTask
+          # 采用 LoadBalanceClient 方式请求，以 lb:// 开头，后面的是注册在 Nacos 上的服务名
+          uri: lb://ww-IntervationTask
+          predicates:
+            - Path=/psyIntervationTask/**
+          filters:
+            - StripPrefix=0
+            - name: Hystrix # 熔断
+              args:
+                name: fallbackcmd
+                # fallback 时调用的方法 http://localhost:8080/fallback
+                fallbackUri: forward:/fallback
+        - id: ww-management
+          # 采用 LoadBalanceClient 方式请求，以 lb:// 开头，后面的是注册在 Nacos 上的服务名
+          uri: lb://ww-management
+          predicates:
+            - Path=/notice/**
+          filters:
+            - StripPrefix=0
+            - name: Hystrix # 熔断
+              args:
+                name: fallbackcmd
+                # fallback 时调用的方法 http://localhost:8080/fallback
+                fallbackUri: forward:/fallback
+        - id: ww-group-report
+            # 采用 LoadBalanceClient 方式请求，以 lb:// 开头，后面的是注册在 Nacos 上的服务名
+            uri: lb://ww-group-report
+            predicates:
+              - Path=/groupReport/**
+            filters:
+              - StripPrefix=0
+              - name: Hystrix # 熔断
+                args:
+                  name: fallbackcmd
+                  # fallback 时调用的方法 http://localhost:8080/fallback
+                  fallbackUri: forward:/fallback
+
+feign:
+  hystrix:
+    enabled: false
+#  hystrix.threadpool.default.coreSize=100
+#  hystrix.threadpool.default.maxQueueSize=1500
+#  hystrix.threadpool.default.queueSizeRejectionThreshold=1000
+
+hystrix:
+  threadpool:
+    default:
+      coreSize: 30
+      maxQueueSize: 150
+      queueSizeRejectionThreshold: 150
+  command:
+    default:
+      fallback:
+        isolation:
+          semaphore:
+            maxConcurrentRequests: 100
+      execution:
+        isolation:
+          semaphore:
+            maxConcurrentRequests: 100
+          strategy:
+            THREAD
+        timeout:
+          enabled: false
+
+# 配置白名单路径
+exclusion:
+  url:
+    - /auth/checkUser
+    - /auth/login
+dubbo:
+  protocol:
+    # dubbo 协议
+    name: dubbo
+    # dubbo 协议端口（ -1 表示自增端口，从 20880 开始）
+    port: -1
+  registry:
+    # 挂载到 Spring Cloud 注册中心
+    address: spring-cloud://localhost
+  scan:
+    base-packages: org.ww.provider.impl
+  consumer:
+    check: false
+    timeout: 6000000
+    retries: -1
+  provider:
+    timeout: 6000000
+  cloud:
+    # 服务消费方订阅服务提供方的应用名称的列表，若需订阅多应用，使用 "," 分割。 不推荐使用默认值为 "*"，它将订阅所有应用。
+    subscribed-services: ww-user,ww-auth,ww-task,ww-manage,ww-IntervationTask,ww-UserFilesTask
+
+logging:
+  level:
+    org: DEBUG
+  file:
+    max-size: 20MB

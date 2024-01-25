@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.PsyIntervationPlanMapper">
+
+    <select id="selectAllPlan" parameterType="String" resultType="org.ww.EntityDO.PsyIntervationPlanDO">
+        select * from psyintervationplan
+    </select>
+
+    <select id="selectAdvices" resultType="org.ww.EntityVO.RecordAndPlanVO">
+        select
+          '指导建议' as moudle,
+          pm.create_time as date,
+          pm.content as content,
+          pm.sender_title as psyTeacher,
+          pm.id as id,
+          1 as isSubmit,
+          1 as type
+        from
+          private_message pm
+        where
+          pm.ref_id = #{fileId}
+          AND pm.type = 3
+    </select>
+
+</mapper>

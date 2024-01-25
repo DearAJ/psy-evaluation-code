@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.ww.mapper.TelBlacklistMapper">
+
+    <select id="selectBlackAndUserInfo" resultType="org.ww.dto.BlacklistDto">
+        SELECT    b.id, b.tel_group_id, b.phone, b.create_time, b.remark,
+                  c.role, c.name, c.id_card, c.age, c.gender, c.school_name,
+                  c.education, c.province, c.city, c.county, c.single_child,
+                  c.birth_order, c.address, c.parental_marriage_state
+        FROM      tel_blacklist b
+        LEFT JOIN  tel_contact c on c.phone = b.phone AND c.tel_group_id = b.tel_group_id AND c.deleted = 0
+        WHERE b.deleted = 0 AND b.tel_group_id = #{telGroupId}
+        <if test="phone != null and phone != ''">
+            AND b.phone = #{phone}
+        </if>
+        ORDER BY b.id desc
+        limit #{start}, #{size}
+    </select>
+
+</mapper>

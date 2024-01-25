@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.ww.mapper.TelCdrInfoMapper">
+    <sql id="selectCallInPart">
+        WHERE
+            cdr.tel_group_id = #{telGroupId}
+            <if test="isSucceed != null and isSucceed == 1">
+                AND cdr.end_status = 1
+            </if>
+            <if test="isSucceed != null and isSucceed == 0">
+                AND cdr.end_status != 1
+            </if>
+            <if test="caller != null and caller != ''">
+                AND cdr.caller = #{caller}
+            </if>
+            AND cdr.direction = 0
+    </sql>
+    <select id="selectCallIn" resultType="org.ww.dto.TelCdrDto">
+        SELECT      cdr.id, cdr.session_id, cdr.caller, cdr.callee, time, contact.name,
+                    note.question_type, cdr.end_status, cdr.end_status_string,
+                    cdr.caller_location, contact.province, contact.city, contact.county,
+                    cdr.record_local_path record, note.teacher_name, contact.id_card,
+                    note.question, note.answer,
+                    cdr.start_timestamp, cdr.ended_timestamp,
+                    note.question_level, contact.role, cdr.direction, cdr.call_in_count as totalCount
+        FROM        psy_evaluation.tel_cdr_info cdr
+        LEFT JOIN   tel_contact contact ON contact.phone = cdr.caller AND contact.deleted = 0
+        LEFT JOIN   tel_note note ON note.tel_cdr_id = cdr.id AND note.deleted = 0
+        <include refid="selectCallInPart"></include>
+        ORDER BY    cdr.time desc
+        LIMIT       #{start}, #{size}
+    </select>
+    <select id="selectCallInCount" resultType="long">
+        SELECT      count(cdr.id)
+        FROM        psy_evaluation.tel_cdr_info cdr
+        <include refid="selectCallInPart"></include>
+    </select>
+
+
+    <select id="selectContinuousDateStatistics" resultType="org.ww.dto.StatisticDto">
+        with recursive c as
+        (
+            select 0 as n, DATE_SUB(date(#{startTime}), INTERVAL 0 day) as sdate
+            union all
+            select n + 1, DATE_SUB(date(#{startTime}), INTERVAL n + 1 day) as sdate
+            from c
+            where n &lt; #{size} - 1
+        )
+        SELECT c.sdate label, IFNULL(grpTci.role, '未知') label2 ,IFNULL(grpTci.successCount, 0) successCount, IFNULL(grpTci.failedCount, 0) failedCount, IFNULL(grpTci.totalCount, 0) totalCount
+        FROM c
+        left join (
+            select DATE_FORMAT(tci.time, '%Y-%m-%d') ymd, tc.role, sum(end_status = 1)  successCount, sum(end_status != 1)  failedCount, sum(end_status is not null)  totalCount
+            from tel_cdr_info tci
+            left join tel_contact tc on tc.phone = tci.caller and tc.deleted = 0 and tc.tel_group_id = #{telGroupId}
+            where tci.direction = 0 and tci.end_status is not null and tci.tel_group_id = #{telGroupId} and tci.time &gt; DATE_SUB(#{startTime}, INTERVAL #{size} day)
+            group by ymd, tc.role) grpTci
+        on c.sdate = grpTci.ymd;
+
+    </select>
+
+    <select id="selectDateStatistics" resultType="org.ww.dto.StatisticDto">
+        SELECT DATE_FORMAT(tci.time, '%Y-%m-%d') label, sum(end_status = 1)  successCount, sum(end_status != 1)  failedCount, sum(end_status is not null)  totalCount,
+                sum(if(end_status = 1, duration, 0)) successDuration,
+                sum(if(end_status != 1, duration, 0)) failedDuration,
+                sum(duration) totalDuration
+        FROM tel_cdr_info tci
+        LEFT JOIN tel_contact tc on tc.phone = tci.caller and tc.deleted = 0 and tc.tel_group_id = #{telGroupId}
+        WHERE tci.direction = 0 and tci.time is not null and tci.end_status is not null and tci.tel_group_id = #{telGroupId}
+        <if test="selectedDate != null">
+            and DATE_FORMAT(tci.time, '%Y-%m-%d') = DATE_FORMAT(#{selectedDate}, '%Y-%m-%d')
+        </if>
+        GROUP BY label
+        ORDER BY label desc
+        limit #{start}, #{size}
+    </select>
+
+    <select id="selectDateStatisticsCount" resultType="long">
+        SELECT COUNT(1)
+        FROM (
+            SELECT DATE_FORMAT(tci.time, '%Y-%m-%d') label
+            FROM tel_cdr_info tci
+            WHERE tci.direction = 0 and tci.time is not null and tci.end_status is not null and tci.tel_group_id = #{telGroupId}
+            <if test="selectedDate != null">
+                and DATE_FORMAT(tci.time, '%Y-%m-%d') = DATE_FORMAT(#{selectedDate}, '%Y-%m-%d')
+            </if>
+            GROUP BY label
+        ) cc
+    </select>
+</mapper>

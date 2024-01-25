@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.OptionsMapper">
+    <select id="selectOptionsByQuestionIds" resultType="org.ww.domain.Options">
+        select options.* from options
+        where options.question_id in
+        <foreach item="item" index="index" collection="questionIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+    <select id="selectOptionPairsByQuestionIds" resultType="java.util.HashMap">
+    select options.id, options.main from options
+    where options.question_id in
+    <foreach item="item" index="index" collection="questionIds"
+             open="(" separator="," close=")">
+        #{item}
+    </foreach>
+</select>
+</mapper>

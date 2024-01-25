@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ww.mapper.SchoolRoleMapper">
+
+    <update id="updateSchoolRole">
+        UPDATE school_role SET name = #{name}, phone = #{phone}, email = #{email}, sex = #{sex}, full_part = #{full_part}, education = #{education}, major = #{major}, graduated_school = #{graduated_school}, certificate = #{certificate} WHERE username = #{username} AND deleted = 0
+    </update>
+
+    <update id="updateSchoolName">
+        UPDATE school_role SET unit = #{school_name} WHERE school_id = #{school_id}
+    </update>
+
+    <update id="updateSchoolManagerInfo">
+        UPDATE school_role SET name = #{name}, phone = #{phone} WHERE username = #{username}
+    </update>
+
+    <update id="deleteByUsernames">
+        UPDATE school_role SET deleted = 1 WHERE username in
+        <foreach collection="usernames" item="username" index="index" open="(" close=")" separator=",">
+            #{username}
+        </foreach>
+    </update>
+
+</mapper>

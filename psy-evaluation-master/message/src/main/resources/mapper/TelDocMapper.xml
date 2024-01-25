@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.ww.mapper.TelDocMapper">
+    <sql id="queryPart">
+        FROM        tel_doc td
+        WHERE       td.tel_group_id = #{telGroupId}
+                    AND td.deleted = 0
+                    AND match(td.title, td.content) against(#{keywords})
+    </sql>
+
+    <select id="queryCount" resultType="int">
+        SELECT      count(td.id)
+        <include refid="queryPart"></include>
+    </select>
+
+    <select id="query" resultType="org.ww.domain.TelDoc">
+        SELECT      td.*
+        <include refid="queryPart"></include>
+        LIMIT       #{start}, #{size}
+
+    </select>
+</mapper>
